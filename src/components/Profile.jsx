@@ -47,7 +47,7 @@ const Profile = ({ userId }) => {
   return (
     <form className="flex flex-col w-1/3 outline outline-amber-500 p-10 rounded-xl mx-auto">
       <h1 className="text-4xl text-amber-500 pb-7 text-center font-semibold">
-        {userId != cookies.userId ? `Usuario ${user.data.user.username}` : "Mi perfil"}
+        {userId != cookies.userId ? `Usuario ${userData.username}` : "Mi perfil"}
       </h1>
       {user.isFetching ? (
         <Spinner />

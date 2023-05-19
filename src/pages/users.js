@@ -55,7 +55,7 @@ const Users = () => {
                             id: item.user.id,
                           },
                         }}
-                        as={`/edit/user?${item.user.username}`}
+                        as={`/edit/user/${item.user.id}`}
                       >
                         <PencilSquareIcon className="w-10 p-2 rounded-full bg-amber-500 font-medium cursor-pointer text-black" />
                       </Link>
