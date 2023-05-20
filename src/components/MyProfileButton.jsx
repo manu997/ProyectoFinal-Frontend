@@ -2,7 +2,6 @@ import Link from "next/link";
 import { useCookies } from "react-cookie";
 import React from "react";
 
-
 const MyProfileButton = () => {
   const [cookies] = useCookies(["userKey", "userId"]);
 

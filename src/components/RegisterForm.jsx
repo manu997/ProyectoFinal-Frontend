@@ -1,11 +1,9 @@
 import { useState } from "react";
 import { useCookies } from "react-cookie";
-import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/router";
 import useLogin from "@/hooks/useLoginContext";
 import useCreateUser from "@/hooks/createUserMutation";
 import React from "react";
-
 
 const RegisterForm = () => {
   const [user, setUser] = useState({
@@ -14,9 +12,6 @@ const RegisterForm = () => {
     password: "",
     role: "reader",
   });
-
-  const setRole = useLogin((state) => state.setRole);
-  const setUserId = useLogin((state) => state.setUserId);
 
   const [cookies, setCookie] = useCookies(["userKey"]);
 
@@ -31,7 +26,6 @@ const RegisterForm = () => {
       });
       console.log(res);
       if (res.status === 201) {
-        const resJson = await res.json();
         router.push(`/home`);
       }
     });

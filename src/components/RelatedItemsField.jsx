@@ -22,11 +22,11 @@ const RelatedItemsField = ({
     const isChecked = event.target.checked;
 
     if (isChecked) {
-      if (elementToEdit.id === undefined) {
+      if (elementToEdit == "") {
         setCheckedItems([parseInt(value), ...checkedItems]);
       } else {
         mutateAsync({
-          idToRelate: elementToEdit.id,
+          idToRelate: elementToEdit,
           actualItemType: typePage(forType),
           itemTypeToRelate: type,
           operation: "add",
@@ -37,11 +37,11 @@ const RelatedItemsField = ({
         });
       }
     } else {
-      if (elementToEdit.id === undefined) {
+      if (elementToEdit == "") {
         setCheckedItems(checkedItems.filter((item) => item != value));
       } else {
         mutateAsync({
-          idToRelate: elementToEdit.id,
+          idToRelate: elementToEdit,
           actualItemType: typePage(forType),
           itemTypeToRelate: type,
           operation: "rem",
@@ -53,7 +53,7 @@ const RelatedItemsField = ({
       }
     }
   };
-  const { data, isFetching } = useElementsByType(cookies.userKey, type);
+  const elementsByType = useElementsByType(cookies.userKey, type);
 
   return (
     <>
@@ -61,10 +61,10 @@ const RelatedItemsField = ({
         {title}:{" "}
       </label>
       <div className="flex flex-row space-x-2">
-        {isFetching ? (
+        {elementsByType.isFetching ? (
           <Spinner />
         ) : (
-          data[type].map((item) => {
+          elementsByType.data[type]?.map((item) => {
             return (
               <React.Fragment key={item[Object.keys(item)].id}>
                 <input

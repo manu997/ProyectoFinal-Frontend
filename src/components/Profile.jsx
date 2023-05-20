@@ -5,6 +5,7 @@ import Spinner from "./Spinner";
 import { editUserById } from "@/hooks/editUserById";
 import { useRouter } from "next/router";
 import React from "react";
+import { toast } from "react-toastify";
 
 const Profile = ({ userId }) => {
   const [cookies, setCookie] = useCookies(["userKey", "userId"]);
@@ -40,6 +41,9 @@ const Profile = ({ userId }) => {
       accessKey: cookies.userKey,
       userEtag: user.data.etag,
     }).then(() => {
+      toast.success("Perfil actualizado!", {
+        position: toast.POSITION.TOP_CENTER
+      });
       router.push(`/users`);
     });
   };
@@ -47,7 +51,9 @@ const Profile = ({ userId }) => {
   return (
     <form className="flex flex-col w-1/3 outline outline-amber-500 p-10 rounded-xl mx-auto">
       <h1 className="text-4xl text-amber-500 pb-7 text-center font-semibold">
-        {userId != cookies.userId ? `Usuario ${userData.username}` : "Mi perfil"}
+        {userId != cookies.userId
+          ? `Usuario ${userData.username}`
+          : "Mi perfil"}
       </h1>
       {user.isFetching ? (
         <Spinner />
@@ -91,7 +97,9 @@ const Profile = ({ userId }) => {
                 </label>
                 <select
                   className="rounded-full pl-5 mb-3 py-2 text-xl"
-                  onChange={(e) => setUserData({...userData, role: e.target.value})}
+                  onChange={(e) =>
+                    setUserData({ ...userData, role: e.target.value })
+                  }
                   value={userData.role}
                 >
                   <option value={"WRITER"}>WRITER</option>

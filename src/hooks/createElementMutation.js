@@ -18,7 +18,7 @@ export default function useCreateElement() {
       );
       return result;
     },
-    onSuccess: async (res) => console.log(res),
+    onSuccess: (res) => console.log(res),
     onError: (err) => console.log(err),
   });
 }

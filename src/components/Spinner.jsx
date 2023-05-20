@@ -1,6 +1,5 @@
 import React from "react";
 
-
 const Spinner = () => {
   return (
     <div role="status" className="flex justify-center align-middle">

@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useState } from "react";
+import { useMemo, useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import RelatedItemsField from "./RelatedItemsField";
 import { typePage } from "./List";
@@ -9,6 +9,7 @@ import useEditElement from "@/hooks/editElementMutation";
 import useCreateElement from "@/hooks/createElementMutation";
 import React from "react";
 import useRelateItems from "@/hooks/createRelatedItemMutation";
+import { toast } from "react-toastify";
 
 const CreateItemForm = ({ type, id }) => {
   const router = useRouter();
@@ -34,7 +35,8 @@ const CreateItemForm = ({ type, id }) => {
   useEffect(() => {
     if (!!id) {
       // Si vienen datos para editar, entra al if
-      if (!query.isFetching) {
+      if (!query.isFetching && query.status == "success") {
+        console.log(element)
         element.name = query.data[type].name;
         element.birthDate = query.data[type].birthDate ?? "";
         element.deathDate = query.data[type].deathDate ?? "";
@@ -69,80 +71,96 @@ const CreateItemForm = ({ type, id }) => {
             type: elementType,
             key: cookies.userKey,
           });
-    mutation.then(async (res) => {
-      if (operation === "POST") {
-        // Entra al if cuando se crea un nuevo elemento, no cuando se edita
-        const resJson = await res.json();
-        if (elementType !== "person") {
-          personsRelated.map((item) => {
-            relateItems.mutateAsync({
-              idToRelate: resJson[elementType].id,
-              actualItemType: typePage(elementType),
-              itemTypeToRelate: "persons",
-              itemIdToRelate: item,
-              operation: "add",
-              key: cookies.userKey,
-            });
-          });
-          if (elementType == "product") {
-            entitiesRelated.map((item) => {
+    mutation
+      .then(async (res) => {
+        if (operation === "POST") {
+          // Entra al if cuando se crea un nuevo elemento, no cuando se edita
+          const resJson = await res.json();
+          if (elementType !== "person") {
+            personsRelated.map((item) => {
               relateItems.mutateAsync({
                 idToRelate: resJson[elementType].id,
                 actualItemType: typePage(elementType),
-                itemTypeToRelate: "entities",
+                itemTypeToRelate: "persons",
                 itemIdToRelate: item,
                 operation: "add",
                 key: cookies.userKey,
               });
             });
+            if (elementType == "product") {
+              entitiesRelated.map((item) => {
+                relateItems.mutateAsync({
+                  idToRelate: resJson[elementType].id,
+                  actualItemType: typePage(elementType),
+                  itemTypeToRelate: "entities",
+                  itemIdToRelate: item,
+                  operation: "add",
+                  key: cookies.userKey,
+                });
+              });
+            }
           }
+          toast.success("¡Elemento creado!", {
+            position: toast.POSITION.TOP_CENTER,
+          });
+          router.push("/home");
+        } else {
+          toast.success("¡Elemento editado!", {
+            position: toast.POSITION.TOP_CENTER,
+          });
+          router.push("/home");
         }
+      })
+      .catch(() => {
+        toast.error("Ha ocurrido un error", {
+          position: toast.POSITION.TOP_CENTER,
+        });
         router.push("/home");
-      }
-      router.push("/home");
-    });
+      });
   };
 
-  const renderRelatedItems = useMemo(() => {
-    if (query.status == "success") {
-      if (elementType == "entity") {
-        return (
+  const renderRelatedItems = useCallback(() => {
+    if (elementType == "entity") {
+      return (
+        <RelatedItemsField
+          forType={type}
+          type="persons"
+          title="Personas relacionadas"
+          checkedItems={personsRelated}
+          setCheckedItems={setPersonsRelated}
+          elementToEdit={id}
+        />
+      );
+    } else if (elementType == "product") {
+      return (
+        <>
           <RelatedItemsField
             forType={type}
             type="persons"
             title="Personas relacionadas"
             checkedItems={personsRelated}
             setCheckedItems={setPersonsRelated}
-            elementToEdit={id != undefined ? query.data[type] : {}}
+            elementToEdit={id}
           />
-        );
-      } else if (elementType == "product") {
-        return (
-          <>
-            <RelatedItemsField
-              forType={type}
-              type="persons"
-              title="Personas relacionadas"
-              checkedItems={personsRelated}
-              setCheckedItems={setPersonsRelated}
-              elementToEdit={id != undefined ? query.data[type] : {}}
-            />
-            <RelatedItemsField
-              forType={type}
-              type="entities"
-              title="Entidades relacionadas"
-              checkedItems={entitiesRelated}
-              setCheckedItems={setEntitiesRelated}
-              elementToEdit={id != undefined ? query.data[type] : {}}
-            />
-          </>
-        );
-      }
+          <RelatedItemsField
+            forType={type}
+            type="entities"
+            title="Entidades relacionadas"
+            checkedItems={entitiesRelated}
+            setCheckedItems={setEntitiesRelated}
+            elementToEdit={id}
+          />
+        </>
+      );
     }
-  }, [elementType, entitiesRelated, personsRelated, query.status]);
+  }, [elementType, entitiesRelated, personsRelated]);
 
-  const imgMemo = useMemo(() => {
-    return <Image alt={element.name} width={120} height={120} src={img} />;
+  const renderImg = useCallback(() => {
+    const imageSrcPattern = /^(https?:\/\/|\.{0,2}\/).+$/;
+    const isValidImageSrc = imageSrcPattern.test(img);
+    isValidImageSrc && (
+      <Image alt={element.name} width={120} height={120} src={img} />
+    );
   }, [img]);
 
   return (
@@ -173,7 +191,7 @@ const CreateItemForm = ({ type, id }) => {
             </select>
           </>
         )}
-        {renderRelatedItems}
+        {renderRelatedItems()}
         <label htmlFor="name" className="text-amber-500 text-xl mb-2">
           Nombre:{" "}
         </label>
@@ -215,15 +233,14 @@ const CreateItemForm = ({ type, id }) => {
         <label htmlFor="image" className="text-amber-500 text-xl mb-2">
           Imagen:{" "}
         </label>
-        <div className="flex flex-row justify-between">
-          <input
-            defaultValue={element.imageUrl ?? ""}
-            type="file"
-            className="py-2 text-xl text-white"
-            onChange={(e) => setImg(URL.createObjectURL(e.target.files[0]))}
-          />
-          {imgMemo}
-        </div>
+        <input
+          defaultValue={element.imageUrl ?? ""}
+          type="text"
+          placeholder="URL de la imagen..."
+          className="rounded-full pl-5 mb-3 py-2 text-xl"
+          onBlur={(e) => setImg(e.target.value)}
+        />
+        {renderImg()}
         <a
           className="rounded-full py-2 mt-5 bg-amber-500 font-medium text-xl text-center cursor-pointer"
           onClick={createElement}

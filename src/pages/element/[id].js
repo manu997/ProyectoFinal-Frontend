@@ -1,57 +1,69 @@
 import Header from "@/components/Header";
+import { typePage } from "@/components/List";
+import Spinner from "@/components/Spinner";
 import Table from "@/components/Table";
-import React from "react";
+import useElementsRelated from "@/hooks/useElementsRelated";
+import React, { useEffect } from "react";
 import { useCallback } from "react";
+import { useCookies } from "react-cookie";
 
 const Page = ({ element, type }) => {
+  const [cookies, setCookies] = useCookies(["userKey"]);
+
+  const getElementsRelated = useElementsRelated(
+    element.id,
+    typePage(type),
+    cookies.userKey
+  );
+
   const renderTable = useCallback(() => {
-    let dataTable = {};
-
-    if (type === "product") {
-      dataTable = {
-        ...dataTable,
-        "Personas relacionadas": element.persons ?? [],
-        "Entidades relacionadas": element.entities ?? [],
+    if (!getElementsRelated.isFetching) {
+      const dataTable = {
+        product: {
+          "Personas relacionadas": getElementsRelated.data?.persons ?? [],
+          "Entidades relacionadas": getElementsRelated.data?.entities ?? [],
+        },
+        entity: {
+          "Personas relacionadas": getElementsRelated.data?.persons ?? [],
+          "Productos relacionados": getElementsRelated.data?.products ?? [],
+        },
+        person: {
+          "Entidades relacionadas": getElementsRelated.data?.entities ?? [],
+          "Productos relacionados": getElementsRelated.data?.products ?? [],
+        },
       };
-    } else if (type === "entity") {
-      dataTable = {
-        ...dataTable,
-        "Personas relacionadas": element.persons ?? [],
-        "Productos relacionados": element.products ?? [],
-      };
+      return <Table data={dataTable[type]} />;
     } else {
-      dataTable = {
-        ...dataTable,
-        "Entidades relacionadas": element.entities ?? [],
-        "Productos relacionados": element.products ?? [],
-      };
+      return (
+        <div className="flex flex-row mt-10">
+          <p className="text-xl text-center text-amber-500 mr-5">
+            Cargando elementos relacionados...
+          </p>
+          <Spinner />
+        </div>
+      );
     }
-    return <Table data={dataTable} />;
-  }, []);
-
-  console.log(element)
+  }, [getElementsRelated.isFetching, type]);
 
   return (
     <>
       <Header />
-      <div className="flex flex-row justify-evenly mt-5">
-        <div className="text-center text-xl text-amber-500 mt-7">
-          <h1 className="mb-3 font-bold">{element.name}</h1>
-          <p>{element.birthDate}</p>
-          <p>{element.deathDate}</p>
-          <img
-            className="mt-5 max-w-lg h-auto mx-auto"
-            src={element.imageUrl}
-            alt={element.name}
-          />
+      <div className="flex flex-row justify-around gap-10 mt-10">
+        <div className="flex flex-col">
+          <div className="text-center text-xl text-amber-500 bg-white rounded-3xl w-fit h-fit">
+            <img
+              className="max-w-lg h-auto mx-auto rounded-t-3xl"
+              src={element.imageUrl}
+              alt={element.name}
+            />
+            <h1 className="my-5 text-4xl font-bold mx-10">{element.name}</h1>
+            <p className="text-2xl font-bold">{element.birthDate}</p>
+            <p className="text-2xl font-bold pb-5">{element.deathDate}</p>
+          </div>
+          {renderTable()}
         </div>
         <div className="flex flex-col w-3/5 space-y-4">
-          {renderTable()}
-          <iframe
-            className=""
-            style={{ height: "50vh" }}
-            src={element.wikiUrl}
-          ></iframe>
+          <iframe style={{ height: "100%" }} src={element.wikiUrl}></iframe>
         </div>
       </div>
     </>
