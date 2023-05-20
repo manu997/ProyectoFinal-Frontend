@@ -40,9 +40,9 @@ const LoginForm = () => {
   return (
     <form
       method="POST"
-      className="flex flex-col w-1/3 outline outline-amber-500 p-10 rounded-xl"
+      className="flex flex-col sm:w-1/3 max-sm:w-full max-sm:mx-auto max-sm:ml-0 outline outline-amber-500 p-10 rounded-xl"
     >
-      <h1 className="text-4xl text-amber-500 pb-7 text-center  font-semibold">
+      <h1 className="text-4xl text-amber-500 pb-7 text-center font-semibold">
         Iniciar sesión
       </h1>
       {displayErrorMessage && <p className="text-red-500">ERROR EN LOGIN</p>}

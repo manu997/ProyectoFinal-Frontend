@@ -3,11 +3,12 @@ import { useRouter } from "next/router";
 import React from "react";
 
 const LogoutButton = () => {
-  const [cookies, setCookie] = useCookies(["userKey", "userId"]);
+  const [cookies, setCookie] = useCookies(["userKey", "userId", "userRole"]);
   const router = useRouter();
   const logout = () => {
     setCookie("userKey", "");
     setCookie("userId", "");
+    setCookie("userRole", "");
     router.push("/");
   };
   return (

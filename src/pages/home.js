@@ -18,8 +18,8 @@ const Home = () => {
   const setUserByUsername = useLogin((state) => state.setUserByUsername);
 
   useEffect(() => {
-    if (!cookies.userKey) {
-      router.push("/"); //Si no has iniciado sesión, vas a "/"
+    if (!cookies.userKey || cookies.userRole == "INACTIVE") {
+      router.push("/"); //Si no has iniciado sesión o eres usuario inactivo, vas a "/"
     } else {
       // Necesito obtener los datos del usuario que ha iniciado sesión, a partir de su username, para crear cookies
       if (!users.isFetching) {
