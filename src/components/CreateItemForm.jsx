@@ -36,7 +36,6 @@ const CreateItemForm = ({ type, id }) => {
     if (!!id) {
       // Si vienen datos para editar, entra al if
       if (!query.isFetching && query.status == "success") {
-        console.log(element)
         element.name = query.data[type].name;
         element.birthDate = query.data[type].birthDate ?? "";
         element.deathDate = query.data[type].deathDate ?? "";

@@ -1,8 +1,21 @@
 import { PencilSquareIcon, TrashIcon } from "@heroicons/react/24/solid";
 import Link from "next/link";
+import { useState } from "react";
 
-const UsersLayout = ({ data, areInactives, deleteFunction, registerFunction }) => {
-  return data.map((item) => (
+const UsersLayout = ({
+  data,
+  areInactives,
+  deleteFunction,
+  registerFunction,
+}) => {
+  const [userList, setUserList] = useState(data);
+
+  const activateUser = (user) => {
+    setUserList(userList.filter((item) => item.user.username != user.username));
+    return registerFunction(user);
+  };
+
+  return userList.map((item) => (
     <div className="flex flex-row mb-5">
       <div className="flex flex-row justify-around gap-10 bg-amber-500 rounded-xl items-center px-7 text-xl w-full text-center">
         <p>{item.user.username}</p>
@@ -12,7 +25,7 @@ const UsersLayout = ({ data, areInactives, deleteFunction, registerFunction }) =
       {areInactives ? (
         <a
           type="button"
-          onClick={() => registerFunction(item.user)}
+          onClick={() => activateUser(item.user)}
           className="py-2 px-4 rounded-full bg-amber-500 font-medium cursor-pointer text-black mx-3 text-xl"
         >
           Activar

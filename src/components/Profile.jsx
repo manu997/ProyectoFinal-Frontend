@@ -1,5 +1,5 @@
 import useUser from "@/hooks/useUserById";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useCookies } from "react-cookie";
 import Spinner from "./Spinner";
 import { editUserById } from "@/hooks/editUserById";
@@ -16,6 +16,11 @@ const Profile = ({ userId }) => {
     password: "",
     role: "",
   });
+
+  const buttonDisable = useMemo(
+    () => Object.values(userData).every((value) => value == ""),
+    [userData] // Compruebo que todos los campos están rellenos
+  );
 
   const user = useUser(cookies.userKey, userId);
 
@@ -42,14 +47,14 @@ const Profile = ({ userId }) => {
       userEtag: user.data.etag,
     }).then(() => {
       toast.success("Perfil actualizado!", {
-        position: toast.POSITION.TOP_CENTER
+        position: toast.POSITION.TOP_CENTER,
       });
       router.push(`/users`);
     });
   };
 
   return (
-    <form className="flex flex-col w-1/3 outline outline-amber-500 p-10 rounded-xl mx-auto">
+    <form className="flex flex-col w-1/3 outline outline-amber-500 p-10 rounded-xl mx-auto mt-10">
       <h1 className="text-4xl text-amber-500 pb-7 text-center font-semibold">
         {userId != cookies.userId
           ? `Usuario ${userData.username}`
@@ -108,9 +113,12 @@ const Profile = ({ userId }) => {
               </>
             )}
           <button
-            className="rounded-full py-2 mt-5 bg-amber-500 font-medium text-xl text-center"
+            className={`rounded-full py-2 mt-5 bg-amber-500 font-medium text-xl text-center ${
+              buttonDisable && "bg-amber-300 text-neutral-500"
+            }`}
             onClick={editUser}
             type="button"
+            disabled={buttonDisable}
           >
             Editar
           </button>

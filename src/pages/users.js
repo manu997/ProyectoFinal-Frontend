@@ -7,9 +7,10 @@ import React from "react";
 import UsersLayout from "@/components/UsersLayout";
 import useCreateUser from "@/hooks/createUserMutation";
 import { toast } from "react-toastify";
+import { isEqual } from "lodash";
 
 const Users = () => {
-  const [cookies, setCookie] = useCookies();
+  const [cookies, setCookie, removeCookie] = useCookies();
 
   const users = useUsers(cookies.userKey);
 
@@ -38,6 +39,13 @@ const Users = () => {
   const registerUser = (user) => {
     createUser.mutateAsync({ user: user, key: cookies.userKey }).then(() => {
       toast.success("¡Usuario autorizado!");
+      Object.keys(cookies).forEach((cookieName) => {
+        const cookieValue = cookies[cookieName];
+        const userObject = { user: { ...user } };
+        if (isEqual(cookieValue, userObject)) {
+          removeCookie(cookieName);
+        }
+      });
       users.refetch();
     });
   };
@@ -60,18 +68,18 @@ const Users = () => {
                 deleteFunction={deleteElement}
               />
             </div>
-            <h1 className="text-4xl text-center text-amber-500 my-12">
-              Usuarios inactivos
-            </h1>
-            <div>
-              <UsersLayout
-                data={getInactiveUsers(cookies)}
-                areInactives={true}
-                registerFunction={registerUser}
-              />
-            </div>
           </>
         )}
+        <h1 className="text-4xl text-center text-amber-500 my-12">
+          Usuarios inactivos
+        </h1>
+        <div>
+          <UsersLayout
+            data={getInactiveUsers(cookies)}
+            areInactives={true}
+            registerFunction={registerUser}
+          />
+        </div>
       </div>
     </>
   );
