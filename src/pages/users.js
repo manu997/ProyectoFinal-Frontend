@@ -37,17 +37,26 @@ const Users = () => {
   };
 
   const registerUser = (user) => {
-    createUser.mutateAsync({ user: user, key: cookies.userKey }).then(() => {
-      toast.success("¡Usuario autorizado!");
-      Object.keys(cookies).forEach((cookieName) => {
-        const cookieValue = cookies[cookieName];
-        const userObject = { user: { ...user } };
-        if (isEqual(cookieValue, userObject)) {
-          removeCookie(cookieName);
+    createUser
+      .mutateAsync({ user: user, key: cookies.userKey })
+      .then((res) => {
+        if (res.status === 201) {
+          toast.success("¡Usuario autorizado!");
+          Object.keys(cookies).forEach((cookieName) => {
+            const cookieValue = cookies[cookieName];
+            const userObject = { user: { ...user } };
+            if (isEqual(cookieValue, userObject)) {
+              removeCookie(cookieName);
+            }
+          });
+          users.refetch();
+        } else {
+          toast.error("No se ha podido autorizar al usuario.");
         }
+      })
+      .catch((err) => {
+        console.log(err);
       });
-      users.refetch();
-    });
   };
 
   return (

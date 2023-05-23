@@ -33,6 +33,8 @@ const Profile = ({ userId }) => {
         email: user.data.user.email,
         password: "",
         role: user.data.user.role,
+        birthDate: user.data.user.birthDate,
+        profileUrl: user.data.user.profileUrl,
       });
     }
   }, [user.isFetching, userId]);
@@ -112,6 +114,29 @@ const Profile = ({ userId }) => {
                 </select>
               </>
             )}
+          <label htmlFor="birthDate" className="text-amber-500 text-xl mb-2">
+            Fecha de nacimiento:{" "}
+          </label>
+          <input
+            type="date"
+            placeholder="Nombre de usuario..."
+            id="birthDate"
+            className="rounded-full pl-5 mb-3 p-2 text-xl"
+            onChange={(e) => (userData.birthDate = e.target.value)}
+            defaultValue={userData.birthDate}
+          />
+
+          <label htmlFor="profileUrl" className="text-amber-500 text-xl mb-2">
+            URL del perfil:{" "}
+          </label>
+          <input
+            type="text"
+            placeholder="URL del perfil..."
+            id="profileUrl"
+            className="rounded-full pl-5 mb-3 py-2 text-xl"
+            onChange={(e) => (userData.profileUrl = e.target.value)}
+            defaultValue={userData.profileUrl}
+          />
           <button
             className={`rounded-full py-2 mt-5 bg-amber-500 font-medium text-xl text-center ${
               buttonDisable && "bg-amber-300 text-neutral-500"
