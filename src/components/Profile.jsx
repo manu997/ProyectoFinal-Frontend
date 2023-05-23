@@ -111,6 +111,7 @@ const Profile = ({ userId }) => {
                 >
                   <option value={"WRITER"}>WRITER</option>
                   <option value={"READER"}>READER</option>
+                  <option value={"INACTIVE"}>INACTIVE</option>
                 </select>
               </>
             )}

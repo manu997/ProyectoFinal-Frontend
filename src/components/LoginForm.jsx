@@ -30,6 +30,8 @@ const LoginForm = () => {
           });
           router.replace("/");
           router.push(`/home`);
+        } else {
+          setDisplayErrorMessage(true);
         }
       })
       .catch(() => {
