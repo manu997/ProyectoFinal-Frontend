@@ -6,9 +6,15 @@ import { editUserById } from "@/hooks/editUserById";
 import { useRouter } from "next/router";
 import React from "react";
 import { toast } from "react-toastify";
+import useLoginContext from "@/hooks/useLoginContext";
 
 const Profile = ({ userId }) => {
   const [cookies, setCookie] = useCookies(["userKey", "userId"]);
+
+  const userContext = useLoginContext((state) => state.user);
+  const setUsernameContext = useLoginContext(
+    (state) => state.setUserByUsername
+  );
 
   const [userData, setUserData] = useState({
     username: "",
@@ -16,6 +22,8 @@ const Profile = ({ userId }) => {
     password: "",
     role: "",
   });
+
+  const [userIdFromQuery, setUserIdFromQuery] = useState();
 
   const buttonDisable = useMemo(
     () => Object.values(userData).every((value) => value == ""),
@@ -28,6 +36,7 @@ const Profile = ({ userId }) => {
 
   useEffect(() => {
     if (!user.isFetching) {
+      setUserIdFromQuery(user.data.user.userId);
       setUserData({
         username: user.data.user.username,
         email: user.data.user.email,
@@ -47,8 +56,15 @@ const Profile = ({ userId }) => {
       userData: userData,
       accessKey: cookies.userKey,
       userEtag: user.data.etag,
-    }).then(() => {
-      toast.success("Perfil actualizado!", {
+    }).then(async (data) => {
+      const dataJson = await data.json()
+      userContext.userId === dataJson.user.id && // Si el usuario que se va a editar es el usuario logeado, cambia el nombre que aparece en el header.
+        setUsernameContext(
+          dataJson.user.id,
+          dataJson.user.username,
+          dataJson.user.role,
+        );
+      toast.success("¡Perfil actualizado!", {
         position: toast.POSITION.TOP_CENTER,
       });
       router.push(`/users`);
