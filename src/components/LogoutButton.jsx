@@ -1,16 +1,19 @@
-import { useCookies } from "react-cookie";
+import useLoginContext from "@/hooks/useLoginContext";
 import { useRouter } from "next/router";
 import React from "react";
 
 const LogoutButton = () => {
-  const [cookies, setCookie] = useCookies(["userKey", "userId", "userRole"]);
   const router = useRouter();
+
+  const setAccessKey = useLoginContext((state) => state.setAccessKey);
+  const setUserByUsername = useLoginContext((state) => state.setUserByUsername);
+
   const logout = () => {
-    setCookie("userKey", "");
-    setCookie("userId", "");
-    setCookie("userRole", "");
+    setAccessKey("");
+    setUserByUsername("", "", "");
     router.push("/");
   };
+
   return (
     <button
       type="button"

@@ -2,10 +2,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { TrashIcon, PencilSquareIcon } from "@heroicons/react/24/solid";
 import React from "react";
-import { useCookies } from "react-cookie";
 import Spinner from "./Spinner";
 import useElementsByType from "@/hooks/useElementsByType";
 import useDeleteByIdAndType from "@/hooks/useDeleteByIdAndType";
+import useLoginContext from "@/hooks/useLoginContext";
 
 export const typePage = (type) => {
   const typeMapping = {
@@ -18,15 +18,16 @@ export const typePage = (type) => {
 };
 
 const List = ({ type }) => {
-  const [cookies] = useCookies(["userKey", "userRole"]);
+  const accessKey = useLoginContext((state) => state.accessKey);
+  const userLogged = useLoginContext((state) => state.user);
 
-  const elements = useElementsByType(cookies.userKey, typePage(type));
+  const elements = useElementsByType(accessKey, typePage(type));
 
   const deleteMutation = useDeleteByIdAndType();
 
   const deleteElement = (id) => {
     deleteMutation
-      .mutateAsync({ id: id, key: cookies.userKey, type: type })
+      .mutateAsync({ id: id, key: accessKey, type: type })
       .then(() => {
         elements.refetch();
       });
@@ -63,7 +64,7 @@ const List = ({ type }) => {
                     {element[type].name}
                   </Link>
                 </div>
-                {cookies.userRole == "WRITER" && (
+                {userLogged.role == "WRITER" && (
                   <div className="flex flex-col space-y-3">
                     <TrashIcon
                       className="w-10 p-2 rounded-full bg-amber-500 font-medium cursor-pointer text-black"

@@ -1,6 +1,5 @@
 import useUserById from "@/hooks/useUserById";
 import { useEffect, useMemo, useState } from "react";
-import { useCookies } from "react-cookie";
 import Spinner from "./Spinner";
 import { editUserById } from "@/hooks/editUserById";
 import { useRouter } from "next/router";
@@ -9,7 +8,7 @@ import { toast } from "react-toastify";
 import useLoginContext from "@/hooks/useLoginContext";
 
 const Profile = ({ userId }) => {
-  const [cookies,] = useCookies(["userKey", "userId"]);
+  const accessKey = useLoginContext((state) => state.accessKey);
 
   const userContext = useLoginContext((state) => state.user);
   const setUsernameContext = useLoginContext(
@@ -30,7 +29,7 @@ const Profile = ({ userId }) => {
     [userData] // Compruebo que todos los campos están rellenos
   );
 
-  const user = useUserById(cookies.userKey, userId);
+  const user = useUserById(accessKey, userId);
 
   const router = useRouter();
 
@@ -54,7 +53,7 @@ const Profile = ({ userId }) => {
     mutateAsync({
       userId: user.data.user.id,
       userData: userData,
-      accessKey: cookies.userKey,
+      accessKey: accessKey,
       userEtag: user.data.etag,
     }).then(async (data) => {
       const dataJson = await data.json()
@@ -74,7 +73,7 @@ const Profile = ({ userId }) => {
   return (
     <form className="flex flex-col w-1/3 outline outline-amber-500 p-10 rounded-xl mx-auto mt-10">
       <h1 className="text-4xl text-amber-500 pb-7 text-center font-semibold">
-        {userId != cookies.userId
+        {userId != userContext.userId
           ? `Usuario ${userData.username}`
           : "Mi perfil"}
       </h1>
@@ -112,8 +111,8 @@ const Profile = ({ userId }) => {
             className="rounded-full pl-5 mb-3 py-2 text-xl"
             onChange={(e) => (userData.password = e.target.value)}
           />
-          {userId != cookies.userId &&
-            cookies.userRole == "WRITER" && ( // Si el perfil no es el que está logeado y el usuario logeado es WRITER...
+          {userId != userContext.userId &&
+            userContext.role == "WRITER" && ( // Si el perfil no es el que está logeado y el usuario logeado es WRITER...
               <>
                 <label htmlFor="role" className="text-amber-500 text-xl mb-2">
                   Rol:{" "}

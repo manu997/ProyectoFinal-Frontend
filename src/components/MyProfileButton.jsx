@@ -1,9 +1,9 @@
+import useLoginContext from "@/hooks/useLoginContext";
 import Link from "next/link";
-import { useCookies } from "react-cookie";
 import React from "react";
 
 const MyProfileButton = () => {
-  const [cookies] = useCookies(["userKey", "userId"]);
+  const userLogged = useLoginContext((state) => state.user);
 
   return (
     <Link
@@ -11,10 +11,10 @@ const MyProfileButton = () => {
       href={{
         pathname: "/user/[id]",
         query: {
-          id: cookies.userId,
+          id: userLogged.userId,
         },
       }}
-      as={`/user/${cookies.userId}`}
+      as={`/user/${userLogged.userId}`}
     >
       Mi perfil
     </Link>

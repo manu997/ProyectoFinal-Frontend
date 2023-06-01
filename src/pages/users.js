@@ -1,5 +1,4 @@
 import Header from "@/components/Header";
-import { useCookies } from "react-cookie";
 import useUsers from "@/hooks/useUsers";
 import Spinner from "@/components/Spinner";
 import useDeleteByIdAndType from "@/hooks/useDeleteByIdAndType";
@@ -8,21 +7,23 @@ import UsersLayout from "@/components/UsersLayout";
 import { toast } from "react-toastify";
 import { editUserById } from "@/hooks/editUserById";
 import useUserById from "@/hooks/useUserById";
+import useLoginContext from "@/hooks/useLoginContext";
 
 const Users = () => {
-  const [cookies] = useCookies();
+  const accessKey = useLoginContext((state) => state.accessKey);
+
   const [userToActivateId, setUsertoActivateId] = useState(0);
 
-  const users = useUsers(cookies.userKey);
+  const users = useUsers(accessKey);
 
   const deleteMutation = useDeleteByIdAndType();
   const activateUserMutation = editUserById();
 
-  const getUserEtag = useUserById(cookies.userKey, userToActivateId);
+  const getUserEtag = useUserById(accessKey, userToActivateId);
 
   const deleteElement = (id) => {
     deleteMutation
-      .mutateAsync({ id: id, key: cookies.userKey, type: "users" })
+      .mutateAsync({ id: id, key: accessKey, type: "users" })
       .then(() => {
         users.refetch();
       });
@@ -43,7 +44,7 @@ const Users = () => {
         .mutateAsync({
           userId: user.id,
           userData: { ...user, role: "READER" },
-          accessKey: cookies.userKey,
+          accessKey: accessKey,
           userEtag: res.data.etag,
         })
         .then((res) => {

@@ -3,17 +3,17 @@ import { typePage } from "@/components/List";
 import Spinner from "@/components/Spinner";
 import Table from "@/components/Table";
 import useElementsRelated from "@/hooks/useElementsRelated";
-import React, { useEffect } from "react";
+import useLoginContext from "@/hooks/useLoginContext";
+import React from "react";
 import { useCallback } from "react";
-import { useCookies } from "react-cookie";
 
 const Page = ({ element, type }) => {
-  const [cookies, setCookies] = useCookies(["userKey"]);
+  const accessKey = useLoginContext((state) => state.accessKey);
 
   const getElementsRelated = useElementsRelated(
     element.id,
     typePage(type),
-    cookies.userKey
+    accessKey
   );
 
   const renderTable = useCallback(() => {

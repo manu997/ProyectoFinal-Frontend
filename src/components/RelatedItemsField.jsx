@@ -1,9 +1,9 @@
 import React from "react";
 import useElementsByType from "@/hooks/useElementsByType";
 import Spinner from "./Spinner";
-import { useCookies } from "react-cookie";
 import { typePage } from "./List";
 import useRelateItems from "@/hooks/createRelatedItemMutation";
+import useLoginContext from "@/hooks/useLoginContext";
 
 const RelatedItemsField = ({
   title,
@@ -13,7 +13,7 @@ const RelatedItemsField = ({
   elementToEdit,
   forType,
 }) => {
-  const [cookies, setCookie] = useCookies(["userKey"]);
+  const accessKey = useLoginContext((state) => state.accessKey);
 
   const { mutateAsync } = useRelateItems();
 
@@ -31,7 +31,7 @@ const RelatedItemsField = ({
           itemTypeToRelate: type,
           operation: "add",
           itemIdToRelate: value,
-          key: cookies.userKey,
+          key: accessKey,
         }).then(() => {
           setCheckedItems([parseInt(value), ...checkedItems]);
         });
@@ -46,14 +46,14 @@ const RelatedItemsField = ({
           itemTypeToRelate: type,
           operation: "rem",
           itemIdToRelate: value,
-          key: cookies.userKey,
+          key: accessKey,
         }).then(() => {
           setCheckedItems(checkedItems.filter((item) => item != value));
         });
       }
     }
   };
-  const elementsByType = useElementsByType(cookies.userKey, type);
+  const elementsByType = useElementsByType(accessKey, type);
 
   return (
     <>
