@@ -17,7 +17,7 @@ const getElementsRelated = async (id, type, key) => {
   };
 
   const queryFirstType = await fetch(
-    `http://127.0.0.1:8000/api/v1/${type}/${id}/${possibleTypesRelated[type].type1}`,
+    `${process.env.NEXT_PUBLIC_PHP_BACKEND}/api/v1/${type}/${id}/${possibleTypesRelated[type].type1}`,
     {
       method: "GET",
       mode: "cors",
@@ -38,7 +38,7 @@ const getElementsRelated = async (id, type, key) => {
     });
 
   const querySecondType = await fetch(
-    `http://127.0.0.1:8000/api/v1/${type}/${id}/${possibleTypesRelated[type].type2}`,
+    `${process.env.NEXT_PUBLIC_PHP_BACKEND}/api/v1/${type}/${id}/${possibleTypesRelated[type].type2}`,
     {
       method: "GET",
       mode: "cors",

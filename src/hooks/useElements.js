@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 const getElements = async (key) => {
-  const products = await fetch(`http://127.0.0.1:8000/api/v1/products`, {
+  const products = await fetch(`${process.env.NEXT_PUBLIC_PHP_BACKEND}/api/v1/products`, {
     method: "GET",
     mode: "cors",
     headers: {
@@ -9,7 +9,7 @@ const getElements = async (key) => {
     },
   }).then((data) => data.json());
 
-  const persons = await fetch(`http://127.0.0.1:8000/api/v1/persons`, {
+  const persons = await fetch(`${process.env.NEXT_PUBLIC_PHP_BACKEND}/api/v1/persons`, {
     method: "GET",
     mode: "cors",
     headers: {
@@ -17,7 +17,7 @@ const getElements = async (key) => {
     },
   }).then((data) => data.json());
 
-  const entities = await fetch(`http://127.0.0.1:8000/api/v1/entities`, {
+  const entities = await fetch(`${process.env.NEXT_PUBLIC_PHP_BACKEND}/api/v1/entities`, {
     method: "GET",
     mode: "cors",
     headers: {

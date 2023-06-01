@@ -16,7 +16,10 @@ const RegisterForm = () => {
       mutateAsync({ ...state.values })
         .then(() => {
           toast.success(
-            "Registro exitoso. Espera a que un WRITER te autorice."
+            "Registro exitoso. Espera a que un WRITER te autorice.",
+            {
+              position: toast.POSITION.TOP_CENTER,
+            }
           );
         })
         .catch((err) => console.error(err));

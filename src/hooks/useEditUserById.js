@@ -4,7 +4,7 @@ export function editUserById() {
   return useMutation(["editProfile"], {
     mutationFn: async ({ userId, userData, accessKey, userEtag }) => {
       const result = await fetch(
-        `http://127.0.0.1:8000/api/v1/users/${userId}`,
+        `${process.env.NEXT_PUBLIC_PHP_BACKEND}/api/v1/users/${userId}`,
         {
           method: "PUT",
           mode: "cors",

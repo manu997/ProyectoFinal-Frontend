@@ -1,5 +1,5 @@
 import useUserById from "@/hooks/useUserById";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Spinner from "./Spinner";
 import { editUserById } from "@/hooks/useEditUserById";
 import { useRouter } from "next/router";
@@ -16,18 +16,17 @@ const Profile = ({ userId }) => {
   );
 
   const [userData, setUserData] = useState({
-    username: "",
-    email: "",
-    password: "",
-    role: "",
+    username: null,
+    email: null,
+    password: null,
+    role: null,
   });
 
-  const [, setUserIdFromQuery] = useState();
-
-  const buttonDisable = useMemo(
-    () => Object.values(userData).every((value) => value == ""),
-    [userData] // Compruebo que todos los campos están rellenos
+  const updateField = useCallback((field, data) =>
+    setUserData((e) => ({ ...e, [field]: data }))
   );
+
+  const [, setUserIdFromQuery] = useState();
 
   const user = useUserById(accessKey, userId);
 
@@ -39,7 +38,7 @@ const Profile = ({ userId }) => {
       setUserData({
         username: user.data.user.username,
         email: user.data.user.email,
-        password: "",
+        password: null,
         role: user.data.user.role,
         birthDate: user.data.user.birthDate,
         profileUrl: user.data.user.profileUrl,
@@ -50,23 +49,31 @@ const Profile = ({ userId }) => {
   const { mutateAsync } = editUserById();
 
   const editUser = () => {
+    userData.password === "" &&
+      setUserData({ ...userData, password: user.data.user.username }); // Si no se introduce ninguna contraseña, se
     mutateAsync({
       userId: user.data.user.id,
       userData: userData,
       accessKey: accessKey,
       userEtag: user.data.etag,
     }).then(async (data) => {
-      const dataJson = await data.json()
-      userContext.userId === dataJson.user.id && // Si el usuario que se va a editar es el usuario logeado, cambia el nombre que aparece en el header.
-        setUsernameContext(
-          dataJson.user.id,
-          dataJson.user.username,
-          dataJson.user.role,
-        );
-      toast.success("¡Perfil actualizado!", {
-        position: toast.POSITION.TOP_CENTER,
-      });
-      router.push(`/users`);
+      if (data.status === 209) {
+        const dataJson = await data.json();
+        userContext.userId === dataJson.user.id && // Si el usuario que se va a editar es el usuario logeado, cambia el nombre que aparece en el header.
+          setUsernameContext(
+            dataJson.user.id,
+            dataJson.user.username,
+            dataJson.user.role
+          );
+        toast.success("¡Perfil actualizado!", {
+          position: toast.POSITION.TOP_CENTER,
+        });
+        router.push(`/users`);
+      } else if (data.status === 400) {
+        toast.error("El email o el username ya existen.", {
+          position: toast.POSITION.TOP_CENTER,
+        });
+      }
     });
   };
 
@@ -89,7 +96,7 @@ const Profile = ({ userId }) => {
             placeholder="Nombre de usuario..."
             id="username"
             className="rounded-full pl-5 mb-3 py-2 text-xl"
-            onChange={(e) => (userData.username = e.target.value)}
+            onChange={(e) => updateField("username", e.target.value)}
             defaultValue={userData.username}
           />
           <label htmlFor="email" className="text-amber-500 text-xl mb-2">
@@ -99,7 +106,7 @@ const Profile = ({ userId }) => {
             type="email"
             placeholder="Email..."
             className="rounded-full pl-5 mb-3 py-2 text-xl"
-            onChange={(e) => (userData.email = e.target.value)}
+            onChange={(e) => updateField("email", e.target.value)}
             defaultValue={userData.email}
           />
           <label htmlFor="password" className="text-amber-500 text-xl mb-2">
@@ -109,7 +116,7 @@ const Profile = ({ userId }) => {
             placeholder="Contraseña..."
             type="password"
             className="rounded-full pl-5 mb-3 py-2 text-xl"
-            onChange={(e) => (userData.password = e.target.value)}
+            onChange={(e) => updateField("password", e.target.value)}
           />
           {userId != userContext.userId &&
             userContext.role == "WRITER" && ( // Si el perfil no es el que está logeado y el usuario logeado es WRITER...
@@ -119,9 +126,7 @@ const Profile = ({ userId }) => {
                 </label>
                 <select
                   className="rounded-full pl-5 mb-3 py-2 text-xl"
-                  onChange={(e) =>
-                    setUserData({ ...userData, role: e.target.value })
-                  }
+                  onChange={(e) => updateField("role", e.target.value)}
                   value={userData.role}
                 >
                   <option value={"WRITER"}>WRITER</option>
@@ -138,7 +143,7 @@ const Profile = ({ userId }) => {
             placeholder="Nombre de usuario..."
             id="birthDate"
             className="rounded-full pl-5 mb-3 p-2 text-xl"
-            onChange={(e) => (userData.birthDate = e.target.value)}
+            onChange={(e) => updateField("birthDate", e.target.value)}
             defaultValue={userData.birthDate}
           />
 
@@ -150,16 +155,13 @@ const Profile = ({ userId }) => {
             placeholder="URL del perfil..."
             id="profileUrl"
             className="rounded-full pl-5 mb-3 py-2 text-xl"
-            onChange={(e) => (userData.profileUrl = e.target.value)}
+            onChange={(e) => updateField("profileUrl", e.target.value)}
             defaultValue={userData.profileUrl}
           />
           <button
-            className={`rounded-full py-2 mt-5 bg-amber-500 font-medium text-xl text-center ${
-              buttonDisable && "bg-amber-300 text-neutral-500"
-            }`}
+            className={`rounded-full py-2 mt-5 bg-amber-500 font-medium text-xl text-center `}
             onClick={editUser}
             type="button"
-            disabled={buttonDisable}
           >
             Editar
           </button>

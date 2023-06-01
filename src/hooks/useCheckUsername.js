@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 
 const checkUsername = async ({username}) => {
   const usernameExists = await fetch(
-    `http://127.0.0.1:8000/api/v1/users/username/${username}`,
+    `${process.env.NEXT_PUBLIC_PHP_BACKEND}/api/v1/users/username/${username}`,
     {
       method: "GET",
     }

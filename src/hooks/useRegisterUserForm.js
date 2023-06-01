@@ -7,7 +7,7 @@ const validationSchema = object().shape({
     .email("No tiene un formato de email válido.")
     .required("El email es obligatorio."),
   password: string().required("La contraseña es obligatoria."),
-  birthDate: date("La fecha no tiene un formato adecuado."),
+  birthDate: date().required("La fecha es obligatoria"),
 });
 
 export const useRegisterUserForm = createForm({

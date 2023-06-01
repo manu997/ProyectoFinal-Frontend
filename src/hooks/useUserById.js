@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 const getUserById = async (key, id) => {
-  const query = await fetch(`http://127.0.0.1:8000/api/v1/users/${id}`, {
+  const query = await fetch(`${process.env.NEXT_PUBLIC_PHP_BACKEND}/api/v1/users/${id}`, {
     method: "GET",
     mode: "cors",
     headers: {

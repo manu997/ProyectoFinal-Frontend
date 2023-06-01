@@ -5,7 +5,7 @@ export default function useDeleteByIdAndType() {
   return useMutation(["deleteElement"], {
     mutationFn: async ({ id, type, key }) => {
       const result = await fetch(
-        `http://127.0.0.1:8000/api/v1/${typePage(type)}/${id}`,
+        `${process.env.NEXT_PUBLIC_PHP_BACKEND}/api/v1/${typePage(type)}/${id}`,
         {
           method: "DELETE",
           mode: "cors",
