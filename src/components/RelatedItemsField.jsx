@@ -2,7 +2,7 @@ import React from "react";
 import useElementsByType from "@/hooks/useElementsByType";
 import Spinner from "./Spinner";
 import { typePage } from "./List";
-import useRelateItems from "@/hooks/createRelatedItemMutation";
+import useRelateItems from "@/hooks/useCreateRelatedItemMutation";
 import useLoginContext from "@/hooks/useLoginContext";
 
 const RelatedItemsField = ({

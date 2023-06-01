@@ -1,7 +1,7 @@
 import useUserById from "@/hooks/useUserById";
 import { useEffect, useMemo, useState } from "react";
 import Spinner from "./Spinner";
-import { editUserById } from "@/hooks/editUserById";
+import { editUserById } from "@/hooks/useEditUserById";
 import { useRouter } from "next/router";
 import React from "react";
 import { toast } from "react-toastify";

@@ -4,10 +4,10 @@ import RelatedItemsField from "./RelatedItemsField";
 import { typePage } from "./List";
 import { useRouter } from "next/router";
 import useElementByIdAndType from "@/hooks/useElementByIdAndType";
-import useEditElement from "@/hooks/editElementMutation";
-import useCreateElement from "@/hooks/createElementMutation";
+import useEditElement from "@/hooks/useEditElementMutation";
+import useCreateElement from "@/hooks/useCreateElementMutation";
 import React from "react";
-import useRelateItems from "@/hooks/createRelatedItemMutation";
+import useRelateItems from "@/hooks/useCreateRelatedItemMutation";
 import { toast } from "react-toastify";
 import useLoginContext from "@/hooks/useLoginContext";
 

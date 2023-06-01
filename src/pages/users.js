@@ -2,10 +2,10 @@ import Header from "@/components/Header";
 import useUsers from "@/hooks/useUsers";
 import Spinner from "@/components/Spinner";
 import useDeleteByIdAndType from "@/hooks/useDeleteByIdAndType";
-import React, { useCallback, useState } from "react";
+import React, { useState } from "react";
 import UsersLayout from "@/components/UsersLayout";
 import { toast } from "react-toastify";
-import { editUserById } from "@/hooks/editUserById";
+import { editUserById } from "@/hooks/useEditUserById";
 import useUserById from "@/hooks/useUserById";
 import useLoginContext from "@/hooks/useLoginContext";
 

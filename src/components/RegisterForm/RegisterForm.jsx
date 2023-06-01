@@ -4,7 +4,7 @@ import { Wizard } from "react-use-wizard";
 import BasicUserInfoStep from "./BasicUserInfoStep";
 import PersonalUserInfoStep from "./PersonalUserInfoStep";
 import { useRegisterUserForm } from "@/hooks/useRegisterUserForm";
-import useCreateUser from "@/hooks/createUserMutation";
+import useCreateUser from "@/hooks/useCreateUserMutation";
 
 const RegisterForm = () => {
   const { state, handleSubmit } = useRegisterUserForm();
