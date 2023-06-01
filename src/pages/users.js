@@ -23,7 +23,7 @@ const Users = () => {
 
   const deleteElement = (id) => {
     deleteMutation
-      .mutateAsync({ id: id, key: accessKey, type: "users" })
+      .mutateAsync({ id: id, key: accessKey, type: "user" })
       .then(() => {
         users.refetch();
       });
