@@ -29,16 +29,6 @@ const Users = () => {
       });
   };
 
-  const getInactiveUsers = useCallback(() => {
-    !users.isFetching &&
-      users.data.users.filter((item) => item.user.role === "INACTIVE");
-  }, [users.isFetching]);
-
-  const getActiveUsers = useCallback(() => {
-    !users.isFetching &&
-      users.data.users.filter((item) => item.user.role !== "INACTIVE");
-  }, [users.isFetching]);
-
   const activateUser = (user) => {
     setUsertoActivateId(user.id);
     getUserEtag.refetch().then((res) => {
