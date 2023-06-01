@@ -1,24 +1,25 @@
-import { useCookies } from "react-cookie";
 import React from "react";
-import { v4 } from "uuid";
 import { toast } from "react-toastify";
 import { Wizard } from "react-use-wizard";
 import BasicUserInfoStep from "./BasicUserInfoStep";
 import PersonalUserInfoStep from "./PersonalUserInfoStep";
 import { useRegisterUserForm } from "@/hooks/useRegisterUserForm";
+import useCreateUser from "@/hooks/createUserMutation";
 
 const RegisterForm = () => {
-  const [cookies, setCookie] = useCookies();
-
   const { state, handleSubmit } = useRegisterUserForm();
+
+  const { mutateAsync } = useCreateUser();
 
   const register = () => {
     if (state.isValid) {
-      setCookie(
-        `usuario-inactivo-${v4()}`,
-        JSON.stringify({ user: { ...state.values } })
-      );
-      toast.success("Registro exitoso. Espera a que un WRITER te autorice.");
+      mutateAsync({ ...state.values })
+        .then(() => {
+          toast.success(
+            "Registro exitoso. Espera a que un WRITER te autorice."
+          );
+        })
+        .catch((err) => console.error(err));
     }
   };
 

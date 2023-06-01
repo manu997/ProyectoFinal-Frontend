@@ -15,11 +15,11 @@ const BasicUserInfoStep = () => {
     useState(false);
 
   const doNextStep = () => {
-    setUsernameExistsMessageVisibility(false)
+    setUsernameExistsMessageVisibility(false);
     const username = state.values.username;
     if (username.length > 0) {
       usernameExists.refetch({ username: username }).then((res) => {
-        res.data == 204 ? setUsernameExistsMessageVisibility(true) : nextStep();
+        res.data == 204 ? nextStep() : setUsernameExistsMessageVisibility(true);
       });
     } else {
       setUsernameExistsMessageVisibility(true);

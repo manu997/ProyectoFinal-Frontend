@@ -1,4 +1,4 @@
-import useUser from "@/hooks/useUserById";
+import useUserById from "@/hooks/useUserById";
 import { useEffect, useMemo, useState } from "react";
 import { useCookies } from "react-cookie";
 import Spinner from "./Spinner";
@@ -9,7 +9,7 @@ import { toast } from "react-toastify";
 import useLoginContext from "@/hooks/useLoginContext";
 
 const Profile = ({ userId }) => {
-  const [cookies, setCookie] = useCookies(["userKey", "userId"]);
+  const [cookies,] = useCookies(["userKey", "userId"]);
 
   const userContext = useLoginContext((state) => state.user);
   const setUsernameContext = useLoginContext(
@@ -23,14 +23,14 @@ const Profile = ({ userId }) => {
     role: "",
   });
 
-  const [userIdFromQuery, setUserIdFromQuery] = useState();
+  const [, setUserIdFromQuery] = useState();
 
   const buttonDisable = useMemo(
     () => Object.values(userData).every((value) => value == ""),
     [userData] // Compruebo que todos los campos están rellenos
   );
 
-  const user = useUser(cookies.userKey, userId);
+  const user = useUserById(cookies.userKey, userId);
 
   const router = useRouter();
 

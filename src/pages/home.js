@@ -2,23 +2,21 @@ import List from "@/components/List";
 import Header from "@/components/Header";
 import { useEffect } from "react";
 import { useRouter } from "next/router";
-import { useCookies } from "react-cookie";
 import useUsers from "@/hooks/useUsers";
-import useLogin from "@/hooks/useLoginContext";
 import React from "react";
+import useLoginContext from "@/hooks/useLoginContext";
 
 const Home = () => {
-  const [cookies, setCookie] = useCookies(["userKey", "userId", "userRole"]);
-
   const router = useRouter();
 
-  const users = useUsers(cookies.userKey);
+  const accessKey = useLoginContext((state) => state.accessKey);
+  const user = useLoginContext((state) => state.user);
+  const setUserByUsername = useLoginContext((state) => state.setUserByUsername);
 
-  const user = useLogin((state) => state.user);
-  const setUserByUsername = useLogin((state) => state.setUserByUsername);
+  const users = useUsers(accessKey);
 
   useEffect(() => {
-    if (!cookies.userKey || cookies.userRole == "INACTIVE") {
+    if (!accessKey || user.role == "INACTIVE") {
       router.push("/"); //Si no has iniciado sesión o eres usuario inactivo, vas a "/"
     } else {
       // Necesito obtener los datos del usuario que ha iniciado sesión, a partir de su username, para crear cookies
@@ -27,8 +25,6 @@ const Home = () => {
         const userLogged = allUsers.find((item) => {
           if (item.user.username == user.username) {
             setUserByUsername(item.user.id, user.username, item.user.role);
-            setCookie("userId", item.user.id);
-            setCookie("userRole", item.user.role);
           }
         });
         return userLogged;

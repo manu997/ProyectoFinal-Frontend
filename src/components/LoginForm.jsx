@@ -1,7 +1,6 @@
 import { useRouter } from "next/router";
 import { useState } from "react";
 import useLoginContext from "../hooks/useLoginContext";
-import { useCookies } from "react-cookie";
 import useLogin from "@/hooks/useLogin";
 import React from "react";
 
@@ -11,8 +10,7 @@ const LoginForm = () => {
   const [displayErrorMessage, setDisplayErrorMessage] = useState(false);
   const router = useRouter();
 
-  const [cookies, setCookie] = useCookies(["userKey"]);
-
+  const setAccessKey = useLoginContext((state) => state.setAccessKey);
   const setUserByUsername = useLoginContext((state) => state.setUserByUsername);
   const { mutateAsync } = useLogin();
 
@@ -25,9 +23,7 @@ const LoginForm = () => {
       .then((res) => {
         if (res.status === 200) {
           setUserByUsername("", username, "");
-          setCookie("userKey", res.headers.get("Authorization"), {
-            path: "/",
-          });
+          setAccessKey(res.headers.get("Authorization"));
           router.replace("/");
           router.push(`/home`);
         } else {

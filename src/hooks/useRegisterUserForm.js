@@ -15,7 +15,6 @@ export const useRegisterUserForm = createForm({
     username: "",
     email: "",
     password: "",
-    role: "READER",
     birthDate: "",
     profileUrl: "",
   },

@@ -1,26 +1,26 @@
-import { useMemo, useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import RelatedItemsField from "./RelatedItemsField";
 import { typePage } from "./List";
 import { useRouter } from "next/router";
-import { useCookies } from "react-cookie";
 import useElementByIdAndType from "@/hooks/useElementByIdAndType";
 import useEditElement from "@/hooks/editElementMutation";
 import useCreateElement from "@/hooks/createElementMutation";
 import React from "react";
 import useRelateItems from "@/hooks/createRelatedItemMutation";
 import { toast } from "react-toastify";
+import useLoginContext from "@/hooks/useLoginContext";
+
+const IMAGE_SRC_PATTERN = /^(https?:\/\/|\.{0,2}\/).+$/;
 
 const CreateItemForm = ({ type, id }) => {
   const router = useRouter();
 
-  const [cookies] = useCookies(["userKey"]);
+  const accessKey = useLoginContext((state) => state.accessKey);
 
   const [elementType, setElementType] = useState("entity");
-  const [img, setImg] = useState("");
   const [personsRelated, setPersonsRelated] = useState([]);
   const [entitiesRelated, setEntitiesRelated] = useState([]);
-  const [productsRelated, setProductsRelated] = useState([]);
   const [element, setElement] = useState({
     name: "",
     birthDate: "",
@@ -30,21 +30,28 @@ const CreateItemForm = ({ type, id }) => {
   });
   const [operation, setOperation] = useState("POST");
 
-  const query = useElementByIdAndType(cookies.userKey, id, typePage(type));
+  const isValidImageSrc = IMAGE_SRC_PATTERN.test(element.imageUrl);
+
+  const query = useElementByIdAndType(accessKey, id, typePage(type));
+
+  const updateField = useCallback((field, data) =>
+    setElement((e) => ({ ...e, [field]: data }))
+  );
 
   useEffect(() => {
     if (!!id) {
       // Si vienen datos para editar, entra al if
       if (!query.isFetching && query.status == "success") {
-        element.name = query.data[type].name;
-        element.birthDate = query.data[type].birthDate ?? "";
-        element.deathDate = query.data[type].deathDate ?? "";
-        element.wikiUrl = query.data[type].wikiUrl ?? "";
-        setImg(query.data[type].imageUrl ?? "");
+        setElement({
+          name: query.data[type].name,
+          birthDate: query.data[type].birthDate ?? "",
+          deathDate: query.data[type].deathDate ?? "",
+          wikiUrl: query.data[type].wikiUrl ?? "",
+          imageUrl: query.data[type].imageUrl ?? "",
+        });
         setElementType(type);
         setPersonsRelated(query.data[type].persons ?? []);
         setEntitiesRelated(query.data[type].entities ?? []);
-        setProductsRelated(query.data[type].products ?? []);
         setOperation("PUT");
       }
     }
@@ -54,113 +61,68 @@ const CreateItemForm = ({ type, id }) => {
   const edit = useEditElement();
   const relateItems = useRelateItems();
 
-  const createElement = () => {
-    element.imageUrl = img;
+  const createElement = async () => {
     const mutation =
       operation === "POST"
         ? create.mutateAsync({
             element: element,
             type: elementType,
-            key: cookies.userKey,
+            key: accessKey,
           })
         : edit.mutateAsync({
             id: query.data[type].id,
             etag: query.data.etag,
             element: element,
             type: elementType,
-            key: cookies.userKey,
+            key: accessKey,
           });
-    mutation
-      .then(async (res) => {
-        if (operation === "POST") {
-          // Entra al if cuando se crea un nuevo elemento, no cuando se edita
-          const resJson = await res.json();
-          if (elementType !== "person") {
-            personsRelated.map((item) => {
+    try {
+      const res = await mutation;
+      if (operation === "POST") {
+        // Entra al if cuando se crea un nuevo elemento, no cuando se edita
+        const resJson = await res.json();
+        if (elementType !== "person") {
+          personsRelated.map((item) => {
+            relateItems.mutateAsync({
+              idToRelate: resJson[elementType].id,
+              actualItemType: typePage(elementType),
+              itemTypeToRelate: "persons",
+              itemIdToRelate: item,
+              operation: "add",
+              key: accessKey,
+            });
+          });
+          if (elementType == "product") {
+            entitiesRelated.map((item) => {
               relateItems.mutateAsync({
                 idToRelate: resJson[elementType].id,
                 actualItemType: typePage(elementType),
-                itemTypeToRelate: "persons",
+                itemTypeToRelate: "entities",
                 itemIdToRelate: item,
                 operation: "add",
-                key: cookies.userKey,
+                key: accessKey,
               });
             });
-            if (elementType == "product") {
-              entitiesRelated.map((item) => {
-                relateItems.mutateAsync({
-                  idToRelate: resJson[elementType].id,
-                  actualItemType: typePage(elementType),
-                  itemTypeToRelate: "entities",
-                  itemIdToRelate: item,
-                  operation: "add",
-                  key: cookies.userKey,
-                });
-              });
-            }
           }
-          toast.success("¡Elemento creado!", {
-            position: toast.POSITION.TOP_CENTER,
-          });
-          router.push("/home");
-        } else {
-          toast.success("¡Elemento editado!", {
-            position: toast.POSITION.TOP_CENTER,
-          });
-          router.push("/home");
         }
-      })
-      .catch(() => {
-        toast.error("Ha ocurrido un error", {
+        toast.success("¡Elemento creado!", {
           position: toast.POSITION.TOP_CENTER,
         });
         router.push("/home");
+      } else {
+        toast.success("¡Elemento editado!", {
+          position: toast.POSITION.TOP_CENTER,
+        });
+        router.push("/home");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Ha ocurrido un error", {
+        position: toast.POSITION.TOP_CENTER,
       });
-  };
-
-  const renderRelatedItems = useCallback(() => {
-    if (elementType == "entity") {
-      return (
-        <RelatedItemsField
-          forType={type}
-          type="persons"
-          title="Personas relacionadas"
-          checkedItems={personsRelated}
-          setCheckedItems={setPersonsRelated}
-          elementToEdit={id}
-        />
-      );
-    } else if (elementType == "product") {
-      return (
-        <>
-          <RelatedItemsField
-            forType={type}
-            type="persons"
-            title="Personas relacionadas"
-            checkedItems={personsRelated}
-            setCheckedItems={setPersonsRelated}
-            elementToEdit={id}
-          />
-          <RelatedItemsField
-            forType={type}
-            type="entities"
-            title="Entidades relacionadas"
-            checkedItems={entitiesRelated}
-            setCheckedItems={setEntitiesRelated}
-            elementToEdit={id}
-          />
-        </>
-      );
+      router.push("/home");
     }
-  }, [elementType, entitiesRelated, personsRelated]);
-
-  const renderImg = useCallback(() => {
-    const imageSrcPattern = /^(https?:\/\/|\.{0,2}\/).+$/;
-    const isValidImageSrc = imageSrcPattern.test(img);
-    isValidImageSrc && (
-      <Image alt={element.name} width={120} height={120} src={img} />
-    );
-  }, [img]);
+  };
 
   return (
     <>
@@ -190,7 +152,36 @@ const CreateItemForm = ({ type, id }) => {
             </select>
           </>
         )}
-        {renderRelatedItems()}
+        {elementType === "entity" && (
+          <RelatedItemsField
+            forType={type}
+            type="persons"
+            title="Personas relacionadas"
+            checkedItems={personsRelated}
+            setCheckedItems={setPersonsRelated}
+            elementToEdit={id}
+          />
+        )}
+        {elementType === "product" && (
+          <>
+            <RelatedItemsField
+              forType={type}
+              type="persons"
+              title="Personas relacionadas"
+              checkedItems={personsRelated}
+              setCheckedItems={setPersonsRelated}
+              elementToEdit={id}
+            />
+            <RelatedItemsField
+              forType={type}
+              type="entities"
+              title="Entidades relacionadas"
+              checkedItems={entitiesRelated}
+              setCheckedItems={setEntitiesRelated}
+              elementToEdit={id}
+            />
+          </>
+        )}
         <label htmlFor="name" className="text-amber-500 text-xl mb-2">
           Nombre:{" "}
         </label>
@@ -199,7 +190,7 @@ const CreateItemForm = ({ type, id }) => {
           type="text"
           placeholder="Nombre..."
           className="rounded-full pl-5 mb-3 py-2 text-xl"
-          onChange={(e) => (element.name = e.target.value)}
+          onChange={(e) => updateField("name", e.target.value)}
         />
         <label htmlFor="location" className="text-amber-500 text-xl mb-2">
           Fecha de nacimiento:{" "}
@@ -208,7 +199,7 @@ const CreateItemForm = ({ type, id }) => {
           defaultValue={element.birthDate}
           type="date"
           className="rounded-full pl-5 mb-3 p-2 text-xl"
-          onChange={(e) => (element.birthDate = e.target.value)}
+          onChange={(e) => updateField("birthDate", e.target.value)}
         />
         <label htmlFor="date" className="text-amber-500 text-xl mb-2">
           Fecha de fallecimiento:{" "}
@@ -217,7 +208,7 @@ const CreateItemForm = ({ type, id }) => {
           defaultValue={element.deathDate}
           type="date"
           className="rounded-full pl-5 mb-3 p-2 text-xl"
-          onChange={(e) => (element.deathDate = e.target.value)}
+          onChange={(e) => updateField("deathDate", e.target.value)}
         />
         <label htmlFor="url" className="text-amber-500 text-xl mb-2">
           URL:{" "}
@@ -227,26 +218,33 @@ const CreateItemForm = ({ type, id }) => {
           type="text"
           placeholder="URL..."
           className="rounded-full pl-5 mb-3 py-2 text-xl"
-          onChange={(e) => (element.wikiUrl = e.target.value)}
+          onChange={(e) => updateField("wikiUrl", e.target.value)}
         />
         <label htmlFor="image" className="text-amber-500 text-xl mb-2">
           Imagen:{" "}
         </label>
         <input
-          defaultValue={element.imageUrl ?? ""}
+          defaultValue={element.imageUrl}
           type="text"
           placeholder="URL de la imagen..."
           className="rounded-full pl-5 mb-3 py-2 text-xl"
-          onBlur={(e) => setImg(e.target.value)}
+          onBlur={(e) => updateField("imageUrl", e.target.value)}
         />
-        {renderImg()}
-        <a
+        {isValidImageSrc && (
+          <Image
+            alt={element.name}
+            width={120}
+            height={120}
+            src={element.imageUrl}
+          />
+        )}
+        <button
           className="rounded-full py-2 mt-5 bg-amber-500 font-medium text-xl text-center cursor-pointer"
-          onClick={createElement}
           type="button"
+          onClick={createElement}
         >
           {type !== "" ? "Editar" : "Crear"} elemento
-        </a>
+        </button>
       </form>
     </>
   );

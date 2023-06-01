@@ -3,30 +3,22 @@ import { useCookies } from "react-cookie";
 import useUsers from "@/hooks/useUsers";
 import Spinner from "@/components/Spinner";
 import useDeleteByIdAndType from "@/hooks/useDeleteByIdAndType";
-import React from "react";
+import React, { useCallback, useState } from "react";
 import UsersLayout from "@/components/UsersLayout";
-import useCreateUser from "@/hooks/createUserMutation";
 import { toast } from "react-toastify";
-import { isEqual } from "lodash";
+import { editUserById } from "@/hooks/editUserById";
+import useUserById from "@/hooks/useUserById";
 
 const Users = () => {
-  const [cookies, setCookie, removeCookie] = useCookies();
+  const [cookies] = useCookies();
+  const [userToActivateId, setUsertoActivateId] = useState(0);
 
   const users = useUsers(cookies.userKey);
 
-  const createUser = useCreateUser();
-
   const deleteMutation = useDeleteByIdAndType();
+  const activateUserMutation = editUserById();
 
-  const getInactiveUsers = (arr) => {
-    const inactiveUsers = Object.keys(arr).filter((cookieName) =>
-      cookieName.startsWith("usuario-inactivo-")
-    );
-    const valoresCookiesUsuariosInactivos = inactiveUsers.map(
-      (cookieName) => cookies[cookieName]
-    );
-    return valoresCookiesUsuariosInactivos;
-  };
+  const getUserEtag = useUserById(cookies.userKey, userToActivateId);
 
   const deleteElement = (id) => {
     deleteMutation
@@ -36,27 +28,34 @@ const Users = () => {
       });
   };
 
-  const registerUser = (user) => {
-    createUser
-      .mutateAsync({ user: user, key: cookies.userKey })
-      .then((res) => {
-        if (res.status === 201) {
-          toast.success("¡Usuario autorizado!");
-          Object.keys(cookies).forEach((cookieName) => {
-            const cookieValue = cookies[cookieName];
-            const userObject = { user: { ...user } };
-            if (isEqual(cookieValue, userObject)) {
-              removeCookie(cookieName);
-            }
-          });
-          users.refetch();
-        } else {
-          toast.error("No se ha podido autorizar al usuario.");
-        }
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+  const getInactiveUsers = useCallback(() => {
+    return users.data.users.filter((item) => item.user.role === "INACTIVE");
+  }, [users.data]);
+
+  const getActiveUsers = useCallback(() => {
+    return users.data.users.filter((item) => item.user.role !== "INACTIVE");
+  }, [users.data]);
+
+  const activateUser = (user) => {
+    setUsertoActivateId(user.id);
+    getUserEtag.refetch().then((res) => {
+      activateUserMutation
+        .mutateAsync({
+          userId: user.id,
+          userData: { ...user, role: "READER" },
+          accessKey: cookies.userKey,
+          userEtag: res.data.etag,
+        })
+        .then((res) => {
+          if (res.status === 209) {
+            toast.success("¡Usuario autorizado!");
+            users.refetch();
+          } else {
+            toast.error("No se ha podido autorizar al usuario.");
+          }
+        })
+        .catch((err) => console.log(err));
+    });
   };
 
   return (
@@ -72,7 +71,7 @@ const Users = () => {
             </h1>
             <div>
               <UsersLayout
-                data={users.data.users}
+                data={getActiveUsers()}
                 areInactives={false}
                 deleteFunction={deleteElement}
               />
@@ -84,9 +83,9 @@ const Users = () => {
         </h1>
         <div>
           <UsersLayout
-            data={getInactiveUsers(cookies)}
+            data={getInactiveUsers()}
             areInactives={true}
-            registerFunction={registerUser}
+            activationFunction={activateUser}
           />
         </div>
       </div>

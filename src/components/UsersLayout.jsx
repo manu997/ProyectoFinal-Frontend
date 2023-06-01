@@ -1,25 +1,17 @@
 import { PencilSquareIcon, TrashIcon } from "@heroicons/react/24/solid";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
 
 const UsersLayout = ({
   data,
   areInactives,
   deleteFunction,
-  registerFunction,
+  activationFunction,
 }) => {
-  const [userList, setUserList] = useState(data);
-
-  const activateUser = (user) => {
-    setUserList(userList.filter((item) => item.user.username != user.username));
-    return registerFunction(user);
-  };
-
   return (
     <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
       <table className="w-full text-left text-gray-400 text-xl">
         <tbody>
-          {userList.map((item) => (
+          {data.map((item) => (
             <tr className="border-b bg-gray-800 border-gray-700">
               <th className="px-6 py-4 font-medium text-gray-100 whitespace-nowrap">
                 {item.user.username}
@@ -30,7 +22,7 @@ const UsersLayout = ({
                 {areInactives ? (
                   <a
                     type="button"
-                    onClick={() => activateUser(item.user)}
+                    onClick={() => activationFunction(item.user)}
                     className="py-2 px-4 rounded-full bg-amber-500 font-medium cursor-pointer text-black mx-3 text-xl"
                   >
                     Activar

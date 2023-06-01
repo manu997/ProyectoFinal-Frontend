@@ -5,15 +5,21 @@ import NewElementButton from "./NewItemButton";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import useLoginContext from "@/hooks/useLoginContext";
 
 const Header = () => {
-  const [cookies, setCookie] = useCookies(["userRole"]);
+  const [cookies] = useCookies(["userRole"]);
 
-  const username = useLoginContext((state) => state.user.username);
+  const userLogged = useLoginContext((state) => state.user);
+
+  const [displayedUsername, setDisplayerUsername] = useState();
 
   const router = useRouter();
+
+  useEffect(() => {
+    setDisplayerUsername(userLogged.username);
+  }, [userLogged.username]);
 
   return (
     <>
@@ -30,12 +36,12 @@ const Header = () => {
             </Link>
           )}
           <p className="rounded-full px-5 bg-amber-500 font-medium text-lg">
-            Bienvenido, {username}
+            Bienvenido, {displayedUsername}
           </p>
           <MyProfileButton />
           <LogoutButton />
         </div>
-        {cookies.userRole == "WRITER" && (
+        {userLogged.role == "WRITER" && (
           <div className="flex flex-row gap-5">
             <Link
               href={"/users"}

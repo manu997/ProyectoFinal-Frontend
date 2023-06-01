@@ -8,17 +8,17 @@ import useElementsByType from "@/hooks/useElementsByType";
 import useDeleteByIdAndType from "@/hooks/useDeleteByIdAndType";
 
 export const typePage = (type) => {
-  return type === "product"
-    ? "products"
-    : type === "entity"
-    ? "entities"
-    : type === "person"
-    ? "persons"
-    : "users";
+  const typeMapping = {
+    product: "products",
+    entity: "entities",
+    person: "persons",
+    user: "users",
+  };
+  return typeMapping[type];
 };
 
 const List = ({ type }) => {
-  const [cookies, setCookie] = useCookies(["userKey", "userRole"]);
+  const [cookies] = useCookies(["userKey", "userRole"]);
 
   const elements = useElementsByType(cookies.userKey, typePage(type));
 
