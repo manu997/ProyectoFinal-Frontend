@@ -30,12 +30,14 @@ const Users = () => {
   };
 
   const getInactiveUsers = useCallback(() => {
-    return users.data.users.filter((item) => item.user.role === "INACTIVE");
-  }, [users.data]);
+    !users.isFetching &&
+      users.data.users.filter((item) => item.user.role === "INACTIVE");
+  }, [users.isFetching]);
 
   const getActiveUsers = useCallback(() => {
-    return users.data.users.filter((item) => item.user.role !== "INACTIVE");
-  }, [users.data]);
+    !users.isFetching &&
+      users.data.users.filter((item) => item.user.role !== "INACTIVE");
+  }, [users.isFetching]);
 
   const activateUser = (user) => {
     setUsertoActivateId(user.id);
@@ -72,7 +74,7 @@ const Users = () => {
             </h1>
             <div>
               <UsersLayout
-                data={getActiveUsers()}
+                data={users.data?.users.filter((item) => item.user.role !== "INACTIVE")}
                 areInactives={false}
                 deleteFunction={deleteElement}
               />
@@ -84,7 +86,7 @@ const Users = () => {
         </h1>
         <div>
           <UsersLayout
-            data={getInactiveUsers()}
+            data={users.data?.users.filter((item) => item.user.role === "INACTIVE")}
             areInactives={true}
             activationFunction={activateUser}
           />

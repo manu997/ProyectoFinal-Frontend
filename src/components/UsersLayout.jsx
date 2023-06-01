@@ -11,7 +11,7 @@ const UsersLayout = ({
     <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
       <table className="w-full text-left text-gray-400 text-xl">
         <tbody>
-          {data.map((item) => (
+          {data?.map((item) => (
             <tr className="border-b bg-gray-800 border-gray-700">
               <th className="px-6 py-4 font-medium text-gray-100 whitespace-nowrap">
                 {item.user.username}
