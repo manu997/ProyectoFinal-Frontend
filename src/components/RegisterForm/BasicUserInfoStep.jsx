@@ -8,10 +8,9 @@ import { CheckCircleIcon, XCircleIcon } from "@heroicons/react/24/solid";
 const BasicUserInfoStep = () => {
   const { nextStep } = useWizard();
 
-  const { register, state } = useRegisterUserForm();
-  const { errors, touched } = state;
+  const { register, state: { errors, touched, values } } = useRegisterUserForm();
 
-  const usernameToCheck = useCheckUsername(state.values.username);
+  const usernameToCheck = useCheckUsername(values.username);
 
   const [usernameExists, setUsernameExists] = useState(true);
   const [usernameExistsMessageVisibility, setUsernameExistsMessageVisibility] =
@@ -19,7 +18,7 @@ const BasicUserInfoStep = () => {
 
   const doNextStep = () => {
     setUsernameExists(false);
-    const username = state.values.username;
+    const username = values.username;
     if (username.length > 0) {
       usernameToCheck.refetch({ username: username }).then((res) => {
         res.data == 204 ? nextStep() : setUsernameExists(true);
@@ -30,13 +29,11 @@ const BasicUserInfoStep = () => {
   };
 
   const checkUsername = () => {
-    if (state.values.username.length > 0) {
+    if (values.username.length > 0) {
       setUsernameExistsMessageVisibility(true);
       usernameToCheck
-        .refetch({ username: state.values.username })
-        .then((res) => {
-          res.data == 204 ? setUsernameExists(false) : setUsernameExists(true);
-        });
+        .refetch({ username: values.username })
+        .then((res) => setUsernameExists(res.data !== 204));
     } else {
       setUsernameExistsMessageVisibility(false);
     }
@@ -55,7 +52,9 @@ const BasicUserInfoStep = () => {
         {...register("username")}
       />
       {errors.username && (
-        <span className="font-medium text-red-500 ml-1 mb-3">{errors.username}</span>
+        <span className="font-medium text-red-500 ml-1 mb-3">
+          {errors.username}
+        </span>
       )}
       {usernameExistsMessageVisibility &&
         (usernameToCheck.isFetching ? (

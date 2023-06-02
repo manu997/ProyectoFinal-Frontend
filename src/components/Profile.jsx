@@ -1,19 +1,18 @@
 import useUserById from "@/hooks/useUserById";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Spinner from "./Spinner";
-import { editUserById } from "@/hooks/useEditUserById";
+import useEditUserMutation, { editUserById } from "@/hooks/useEditUserById";
 import { useRouter } from "next/router";
 import React from "react";
 import { toast } from "react-toastify";
-import useLoginContext from "@/hooks/useLoginContext";
+import {
+  useSetUser,
+  useUserContext,
+} from "@/hooks/useLoginContext";
 
-const Profile = ({ userId }) => {
-  const accessKey = useLoginContext((state) => state.accessKey);
-
-  const userContext = useLoginContext((state) => state.user);
-  const setUsernameContext = useLoginContext(
-    (state) => state.setUserByUsername
-  );
+const Profile = () => {
+  const userContext = useUserContext();
+  const setUser = useSetUser();
 
   const [userData, setUserData] = useState({
     username: null,
@@ -26,15 +25,12 @@ const Profile = ({ userId }) => {
     setUserData((e) => ({ ...e, [field]: data }))
   );
 
-  const [, setUserIdFromQuery] = useState();
-
-  const user = useUserById(accessKey, userId);
-
   const router = useRouter();
+  const userId = parseInt(router.query.id ?? "");
+  const user = useUserById(userId);
 
   useEffect(() => {
-    if (!user.isFetching) {
-      setUserIdFromQuery(user.data.user.userId);
+    if (user.isFetched && user.isSuccess) {
       setUserData({
         username: user.data.user.username,
         email: user.data.user.email,
@@ -44,43 +40,42 @@ const Profile = ({ userId }) => {
         profileUrl: user.data.user.profileUrl,
       });
     }
-  }, [user.isFetching, userId]);
+  }, [user.isSuccess, router.query.id]);
 
-  const { mutateAsync } = editUserById();
+  const { mutateAsync: editUser } = useEditUserMutation();
 
-  const editUser = () => {
-    userData.password === "" &&
-      setUserData({ ...userData, password: user.data.user.username }); // Si no se introduce ninguna contraseña, se
-    mutateAsync({
+  const handleEditUser = async () => {
+    const data = await editUser({
       userId: user.data.user.id,
       userData: userData,
-      accessKey: accessKey,
       userEtag: user.data.etag,
-    }).then(async (data) => {
-      if (data.status === 209) {
-        const dataJson = await data.json();
-        userContext.userId === dataJson.user.id && // Si el usuario que se va a editar es el usuario logeado, cambia el nombre que aparece en el header.
-          setUsernameContext(
-            dataJson.user.id,
-            dataJson.user.username,
-            dataJson.user.role
-          );
+    });
+    switch (data.status) {
+      case 209:
+        const { user } = await data.json();
+        userContext.userId === user.id && // Si el usuario que se va a editar es el usuario logeado, cambia el nombre que aparece en el header.
+          setUser(user.id, user.username, user.role);
         toast.success("¡Perfil actualizado!", {
           position: toast.POSITION.TOP_CENTER,
         });
         router.push(`/users`);
-      } else if (data.status === 400) {
+        break;
+      case 400:
         toast.error("El email o el username ya existen.", {
           position: toast.POSITION.TOP_CENTER,
         });
-      }
-    });
+        break;
+      default:
+        toast.error("Error interno", {
+          position: toast.POSITION.TOP_CENTER,
+        });
+    }
   };
 
   return (
     <form className="flex flex-col w-1/3 outline outline-amber-500 p-10 rounded-xl mx-auto mt-10">
       <h1 className="text-4xl text-amber-500 pb-7 text-center font-semibold">
-        {userId != userContext.userId
+        {userId !== userContext.userId
           ? `Usuario ${userData.username}`
           : "Mi perfil"}
       </h1>
@@ -118,8 +113,8 @@ const Profile = ({ userId }) => {
             className="rounded-full pl-5 mb-3 py-2 text-xl"
             onChange={(e) => updateField("password", e.target.value)}
           />
-          {userId != userContext.userId &&
-            userContext.role == "WRITER" && ( // Si el perfil no es el que está logeado y el usuario logeado es WRITER...
+          {userId !== userContext.userId &&
+            userContext.role === "WRITER" && ( // Si el perfil no es el que está logeado y el usuario logeado es WRITER...
               <>
                 <label htmlFor="role" className="text-amber-500 text-xl mb-2">
                   Rol:{" "}
@@ -160,7 +155,7 @@ const Profile = ({ userId }) => {
           />
           <button
             className={`rounded-full py-2 mt-5 bg-amber-500 font-medium text-xl text-center `}
-            onClick={editUser}
+            onClick={handleEditUser}
             type="button"
           >
             Editar

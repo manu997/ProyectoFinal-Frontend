@@ -3,9 +3,11 @@ import Link from "next/link";
 import { TrashIcon, PencilSquareIcon } from "@heroicons/react/24/solid";
 import React from "react";
 import Spinner from "./Spinner";
-import useElementsByType from "@/hooks/useElementsByType";
-import useDeleteByIdAndType from "@/hooks/useDeleteByIdAndType";
-import useLoginContext from "@/hooks/useLoginContext";
+import useElementsByTypeQuery, {
+  ELEMENTS_BY_TYPE_QUERY_KEY,
+} from "@/hooks/useElementsByType";
+import useDeleteElementMutation from "@/hooks/useDeleteByIdAndType";
+import { useUserContext } from "@/hooks/useLoginContext";
 
 export const typePage = (type) => {
   const typeMapping = {
@@ -18,20 +20,13 @@ export const typePage = (type) => {
 };
 
 const List = ({ type }) => {
-  const accessKey = useLoginContext((state) => state.accessKey);
-  const userLogged = useLoginContext((state) => state.user);
+  const userLogged = useUserContext();
+  const elements = useElementsByTypeQuery(typePage(type));
+  const { mutateAsync: deleteElement } = useDeleteElementMutation([
+    ELEMENTS_BY_TYPE_QUERY_KEY,
+  ]);
 
-  const elements = useElementsByType(accessKey, typePage(type));
-
-  const deleteMutation = useDeleteByIdAndType();
-
-  const deleteElement = (id) => {
-    deleteMutation
-      .mutateAsync({ id: id, key: accessKey, type: type })
-      .then(() => {
-        elements.refetch();
-      });
-  };
+  const handleDeleteElement = (id) => deleteElement({ id, type });
 
   return (
     <div className="flex flex-col space-y-7 w-1/4">
@@ -51,15 +46,7 @@ const List = ({ type }) => {
                   />
                   <Link
                     className="text-white underline text-3xl"
-                    href={{
-                      pathname: `/element/[id]`,
-                      query: {
-                        id: element[type].id,
-                        element: JSON.stringify(element[type]),
-                        type: type,
-                      },
-                    }}
-                    as={`/${typePage(type)}/${element[type].id}`}
+                    href={`/${type}/${element[type].id}`}
                   >
                     {element[type].name}
                   </Link>
@@ -68,14 +55,14 @@ const List = ({ type }) => {
                   <div className="flex flex-col space-y-3">
                     <TrashIcon
                       className="w-10 p-2 rounded-full bg-amber-500 font-medium cursor-pointer text-black"
-                      onClick={() => deleteElement(element[type].id)}
+                      onClick={() => handleDeleteElement(element[type].id)}
                     />
                     <Link
                       className="text-white underline text-3xl"
                       href={{
                         pathname: "/create",
                         query: {
-                          type: type,
+                          type,
                           id: element[type].id,
                         },
                       }}

@@ -1,5 +1,5 @@
 import React from "react";
-import useElementsByType from "@/hooks/useElementsByType";
+import useElementsByTypeQuery from "@/hooks/useElementsByType";
 import Spinner from "./Spinner";
 import { typePage } from "./List";
 import useRelateItems from "@/hooks/useCreateRelatedItemMutation";
@@ -15,17 +15,17 @@ const RelatedItemsField = ({
 }) => {
   const accessKey = useLoginContext((state) => state.accessKey);
 
-  const { mutateAsync } = useRelateItems();
+  const { mutateAsync: relateItems } = useRelateItems();
 
   const handleCheckboxChange = (event) => {
     const value = event.target.value;
     const isChecked = event.target.checked;
 
     if (isChecked) {
-      if (elementToEdit == "") {
+      if (elementToEdit === undefined) {
         setCheckedItems([parseInt(value), ...checkedItems]);
       } else {
-        mutateAsync({
+        relateItems({
           idToRelate: elementToEdit,
           actualItemType: typePage(forType),
           itemTypeToRelate: type,
@@ -37,10 +37,10 @@ const RelatedItemsField = ({
         });
       }
     } else {
-      if (elementToEdit == "") {
+      if (elementToEdit === undefined) {
         setCheckedItems(checkedItems.filter((item) => item != value));
       } else {
-        mutateAsync({
+        relateItems({
           idToRelate: elementToEdit,
           actualItemType: typePage(forType),
           itemTypeToRelate: type,
@@ -53,7 +53,7 @@ const RelatedItemsField = ({
       }
     }
   };
-  const elementsByType = useElementsByType(accessKey, type);
+  const elementsByType = useElementsByTypeQuery(type);
 
   return (
     <>

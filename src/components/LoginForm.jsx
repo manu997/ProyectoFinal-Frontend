@@ -24,8 +24,7 @@ const LoginForm = () => {
         if (res.status === 200) {
           setUserByUsername("", username, "");
           setAccessKey(res.headers.get("Authorization"));
-          router.replace("/");
-          router.push(`/home`);
+          router.push("/home");
         } else {
           setDisplayErrorMessage(true);
         }

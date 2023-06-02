@@ -32,14 +32,14 @@ const CreateItemForm = ({ type, id }) => {
 
   const isValidImageSrc = IMAGE_SRC_PATTERN.test(element.imageUrl);
 
-  const query = useElementByIdAndType(accessKey, id, typePage(type));
+  const query = useElementByIdAndType(id, typePage(type));
 
   const updateField = useCallback((field, data) =>
     setElement((e) => ({ ...e, [field]: data }))
   );
 
   useEffect(() => {
-    if (!!id) {
+    if (id !== undefined) {
       // Si vienen datos para editar, entra al if
       if (!query.isFetching && query.status == "success") {
         setElement({
@@ -128,9 +128,9 @@ const CreateItemForm = ({ type, id }) => {
     <>
       <form className="flex flex-col w-2/5 mx-auto py-10">
         <h1 className="text-4xl text-amber-500 pb-7">
-          {type !== "" ? "Editar" : "Nuevo"} elemento
+          {type !== undefined ? "Editar" : "Nuevo"} elemento
         </h1>
-        {type === "" && (
+        {type === undefined && (
           <>
             <label htmlFor="type" className="text-amber-500 text-xl mb-2">
               Tipo de elemento:{" "}
@@ -243,7 +243,7 @@ const CreateItemForm = ({ type, id }) => {
           type="button"
           onClick={createElement}
         >
-          {type !== "" ? "Editar" : "Crear"} elemento
+          {type !== undefined ? "Editar" : "Crear"} elemento
         </button>
       </form>
     </>

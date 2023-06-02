@@ -1,61 +1,55 @@
 import Header from "@/components/Header";
-import useUsers from "@/hooks/useUsers";
 import Spinner from "@/components/Spinner";
-import useDeleteByIdAndType from "@/hooks/useDeleteByIdAndType";
-import React, { useState } from "react";
+import useDeleteElementMutation from "@/hooks/useDeleteByIdAndType";
+import React, { useMemo } from "react";
 import UsersLayout from "@/components/UsersLayout";
 import { toast } from "react-toastify";
-import { editUserById } from "@/hooks/useEditUserById";
-import useUserById from "@/hooks/useUserById";
-import useLoginContext from "@/hooks/useLoginContext";
+import useEditUserMutation from "@/hooks/useEditUserById";
+import { useGetUserById } from "@/hooks/useUserById";
+import useUsersQuery, { USERS_QUERY_KEY } from "@/hooks/useUsers";
 
 const Users = () => {
-  const accessKey = useLoginContext((state) => state.accessKey);
+  const usersQuery = useUsersQuery();
 
-  const [userToActivateId, setUsertoActivateId] = useState(0);
+  const { mutateAsync: deleteElement } = useDeleteElementMutation([USERS_QUERY_KEY]);
+  const { mutateAsync: editUser } = useEditUserMutation();
 
-  const users = useUsers(accessKey);
+  const getUserById = useGetUserById();
 
-  const deleteMutation = useDeleteByIdAndType();
-  const activateUserMutation = editUserById();
+  const handleDeleteElement = (id) => deleteElement({ id, type: "user" });
 
-  const getUserEtag = useUserById(accessKey, userToActivateId);
-
-  const deleteElement = (id) => {
-    deleteMutation
-      .mutateAsync({ id: id, key: accessKey, type: "user" })
-      .then(() => {
-        users.refetch();
+  const activateUser = async (user) => {
+    try {
+      const { etag } = await getUserById(user.id);
+      const res = await editUser({
+        userId: user.id,
+        userData: { ...user, role: "READER" },
+        userEtag: etag,
       });
+      if (res.status === 209) toast.success("¡Usuario autorizado!");
+      else toast.error("No se ha podido autorizar al usuario.");
+    } catch (err) {
+      console.log(err);
+    }
   };
 
-  const activateUser = (user) => {
-    setUsertoActivateId(user.id);
-    getUserEtag.refetch().then((res) => {
-      activateUserMutation
-        .mutateAsync({
-          userId: user.id,
-          userData: { ...user, role: "READER" },
-          accessKey: accessKey,
-          userEtag: res.data.etag,
-        })
-        .then((res) => {
-          if (res.status === 209) {
-            toast.success("¡Usuario autorizado!");
-            users.refetch();
-          } else {
-            toast.error("No se ha podido autorizar al usuario.");
-          }
-        })
-        .catch((err) => console.log(err));
-    });
-  };
+  const activeUsers = useMemo(() => {
+    return usersQuery.data?.users.filter(
+      (item) => item.user.role !== "INACTIVE"
+    );
+  }, [usersQuery]);
+
+  const inactiveUsers = useMemo(() => {
+    return usersQuery.data?.users.filter(
+      (item) => item.user.role === "INACTIVE"
+    );
+  }, [usersQuery]);
 
   return (
     <>
       <Header />
       <div className="w-2/3 mx-auto">
-        {users.isFetching ? (
+        {usersQuery.isFetching ? (
           <Spinner />
         ) : (
           <>
@@ -64,9 +58,9 @@ const Users = () => {
             </h1>
             <div>
               <UsersLayout
-                data={users.data?.users.filter((item) => item.user.role !== "INACTIVE")}
+                data={activeUsers}
                 areInactives={false}
-                deleteFunction={deleteElement}
+                deleteFunction={handleDeleteElement}
               />
             </div>
           </>
@@ -76,7 +70,7 @@ const Users = () => {
         </h1>
         <div>
           <UsersLayout
-            data={users.data?.users.filter((item) => item.user.role === "INACTIVE")}
+            data={inactiveUsers}
             areInactives={true}
             activationFunction={activateUser}
           />

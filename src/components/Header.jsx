@@ -1,25 +1,13 @@
-import { useCookies } from "react-cookie";
-import MyProfileButton from "./MyProfileButton";
 import LogoutButton from "./LogoutButton";
-import NewElementButton from "./NewItemButton";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
-import React, { useEffect, useState } from "react";
-import useLoginContext from "@/hooks/useLoginContext";
+import React from "react";
+import { useUserContext } from "@/hooks/useLoginContext";
 
 const Header = () => {
-  const [cookies] = useCookies(["userRole"]);
-
-  const userLogged = useLoginContext((state) => state.user);
-
-  const [displayedUsername, setDisplayerUsername] = useState();
-
+  const userLogged = useUserContext();
   const router = useRouter();
-
-  useEffect(() => {
-    setDisplayerUsername(userLogged.username);
-  }, [userLogged.username]);
 
   return (
     <>
@@ -36,12 +24,17 @@ const Header = () => {
             </Link>
           )}
           <p className="rounded-full px-5 bg-amber-500 font-medium text-lg">
-            Bienvenido, {displayedUsername}
+            Bienvenido, {userLogged.username}
           </p>
-          <MyProfileButton />
+          <Link
+            className="rounded-full px-5 bg-amber-500 font-medium text-lg"
+            href={`/user/${userLogged.userId}`}
+          >
+            Mi perfil
+          </Link>
           <LogoutButton />
         </div>
-        {userLogged.role == "WRITER" && (
+        {userLogged.role === "WRITER" && (
           <div className="flex flex-row gap-5">
             <Link
               href={"/users"}
@@ -49,7 +42,12 @@ const Header = () => {
             >
               Usuarios
             </Link>
-            <NewElementButton />{" "}
+            <Link
+              className="rounded-full px-5 bg-amber-500 font-medium text-lg"
+              href="/create"
+            >
+              Crear elemento
+            </Link>
           </div>
         )}
       </div>

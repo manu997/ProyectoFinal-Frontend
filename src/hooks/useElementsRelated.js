@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useAccessKey } from "./useLoginContext";
 
 const getElementsRelated = async (id, type, key) => {
   const possibleTypesRelated = {
@@ -61,8 +62,9 @@ const getElementsRelated = async (id, type, key) => {
   return { ...queryFirstType, ...querySecondType };
 };
 
-export default function useElementsRelated(id, type, key) {
+export default function useElementsRelated(id, type) {
+  const accessKey = useAccessKey();
   return useQuery(["getElementsRelated"], () =>
-    getElementsRelated(id, type, key)
+    getElementsRelated(id, type, accessKey)
   );
 }

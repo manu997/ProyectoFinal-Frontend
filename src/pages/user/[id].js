@@ -2,19 +2,13 @@ import Header from "@/components/Header";
 import Profile from "@/components/Profile";
 import React from "react";
 
-const Page = ({ id }) => {
+const Page = () => {
   return (
     <>
       <Header />
-      <Profile userId={id} />
+      <Profile />
     </>
   );
 };
-
-export async function getServerSideProps(context) {
-  const { query } = context;
-
-  return { props: { id: query.id } };
-}
 
 export default Page;

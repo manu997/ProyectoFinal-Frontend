@@ -19,7 +19,7 @@ const Home = () => {
     if (!accessKey || user.role == "INACTIVE") {
       router.push("/"); //Si no has iniciado sesión o eres usuario inactivo, vas a "/"
     } else {
-      // Necesito obtener los datos del usuario que ha iniciado sesión, a partir de su username, para crear cookies
+      // Necesito obtener los datos del usuario que ha iniciado sesión, a partir de su username
       if (!users.isFetching) {
         const allUsers = users.data.users;
         const userLogged = allUsers.find((item) => {

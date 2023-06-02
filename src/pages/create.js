@@ -1,22 +1,18 @@
 import Header from "@/components/Header";
 import CreateItemForm from "@/components/CreateItemForm";
 import React from "react";
+import { useRouter } from "next/router";
 
-const CreatePage = ({ type, id }) => {
+const CreatePage = () => {
+  const router = useRouter();
+  const { type, id } = router.query;
+  console.log(type)
   return (
     <>
       <Header />
-      <CreateItemForm id={id} type={type} />
+      <CreateItemForm type={type} id={id} />
     </>
   );
 };
-
-export async function getServerSideProps(context) {
-  const { query } = context;
-
-  return {
-    props: { id: query.id ?? "", type: query.type ?? "" },
-  };
-}
 
 export default CreatePage;
